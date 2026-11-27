@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import Icon from "./Icon.tsx";
-import { DIVISION_COLOR } from "@/lib/colors.ts";
+import DivisionIcon from "./DivisionIcon.tsx";
 
 import { DIVISIONS } from "@/lib/divisions.ts";
 
@@ -47,7 +47,7 @@ export function Rail() {
       <div className="rail-group">
         {DIVS.map((d) => (
           <Link key={d} href={`/divisi/${d}${qs}`} className={path.toUpperCase().startsWith(`/DIVISI/${d}`) ? "on" : ""} aria-label={`Divisi ${d}`}>
-            <span className="dot" style={{ background: DIVISION_COLOR[d] }} /><span className="tag"><b>{d}</b> · {NAME[d]}</span>
+            <DivisionIcon code={d} size={20} /><span className="tag"><b>{d}</b> · {NAME[d]}</span>
           </Link>
         ))}
       </div>

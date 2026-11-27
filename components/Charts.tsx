@@ -2,6 +2,7 @@
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
 } from "recharts";
+import DivisionIcon from "./DivisionIcon.tsx";
 
 const nf = new Intl.NumberFormat("id-ID");
 const axis = { stroke: "var(--text-2)", fontSize: 12, tickLine: false, axisLine: false } as const;
@@ -33,7 +34,7 @@ export function TrendChart({ data, series, unit }: { data: Record<string, number
     <>
       <div className="legend">
         {series.map((s) => (
-          <span key={s.key}><span className="swatch" style={{ background: s.color }} /><span className="code">{s.key}</span>{s.label}</span>
+          <span key={s.key}><DivisionIcon code={s.key} size={16} /><span className="code">{s.key}</span>{s.label}</span>
         ))}
       </div>
       <div className="chart" role="img" aria-label={`Grafik tren ${unit ?? ""} per tahun`}>

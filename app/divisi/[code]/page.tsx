@@ -6,6 +6,7 @@ import ExportButton from "@/components/ExportButton.tsx";
 import LecturerTable from "@/components/LecturerTable.tsx";
 import PageTools from "@/components/PageTools.tsx";
 import { colorFor } from "@/lib/colors.ts";
+import DivisionIcon from "@/components/DivisionIcon.tsx";
 import { fmt } from "@/lib/format.ts";
 import { getDivisionSummaries, getFirstPubYear, getLecturers } from "@/lib/queries.ts";
 import { parseRange, rangeLabel, rangeQuery } from "@/lib/range.ts";
@@ -30,7 +31,7 @@ export default async function DivisiPage({ params, searchParams }: {
       <nav className="filters" aria-label="Pilih divisi">
         {summaries.map((s) => (
           <Link key={s.code} href={`/divisi/${s.code}${qs}`} className={`btn ${s.code === d.code ? "primary" : ""}`}>
-            <span className="swatch" style={{ background: colorFor(s.code) }} />{s.code}
+            <DivisionIcon code={s.code} size={18} />{s.code}
           </Link>
         ))}
       </nav>

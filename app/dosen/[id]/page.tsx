@@ -4,6 +4,7 @@ import { PubCiteCharts, SnapshotLine } from "@/components/Charts.tsx";
 import Avatar from "@/components/Avatar.tsx";
 import PageTools from "@/components/PageTools.tsx";
 import { colorFor } from "@/lib/colors.ts";
+import DivisionIcon from "@/components/DivisionIcon.tsx";
 import { fmt } from "@/lib/format.ts";
 import { getFirstPubYear, getLecturer } from "@/lib/queries.ts";
 import { parseRange, rangeLabel, rangeQuery } from "@/lib/range.ts";
@@ -42,7 +43,7 @@ export default async function LecturerPage({ params, searchParams }: {
           <div>
             <h1>{l.name}</h1>
       <p className="sub">
-        {l.division_code && <><span className="swatch" style={{ background: colorFor(l.division_code) }} /><Link href={`/divisi/${l.division_code}${qs}`}>Divisi {l.division_name}</Link> · </>}
+        {l.division_code && <><DivisionIcon code={l.division_code} size={16} /> <Link href={`/divisi/${l.division_code}${qs}`}>Divisi {l.division_name}</Link> · </>}
         {l.academic_rank ?? ""}{l.status_note ? ` · ${l.status_note}` : ""}
       </p>
           </div>

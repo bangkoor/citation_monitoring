@@ -270,9 +270,19 @@ body[data-loading] main > *:not(.page-head) { opacity: .45; transition: opacity 
 /* Division share bars (summary page) */
 .shares { list-style: none; margin: 14px 0 0; padding: 14px 0 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; flex: 1; justify-content: space-evenly; }
 .stack > .card:last-child { display: flex; flex-direction: column; }
-.shares li { display: grid; grid-template-columns: 46px minmax(0, 1fr) 34px; align-items: center; gap: 10px; font-size: 13px; }
+.shares li { display: grid; grid-template-columns: 72px minmax(0, 1fr) 34px; align-items: center; gap: 10px; font-size: 13px; }
 .shares .code { font-weight: 650; }
 .shares .track { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
 .shares .fill { display: block; height: 100%; border-radius: 999px; min-width: 6px; }
 .shares .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-2); }
 .shares-title { font-size: 12px; color: var(--text-2); margin: 14px 0 -4px; }
+
+/* Division icons (replace the old colour boxes) */
+.divicon { flex: none; display: inline-block; vertical-align: -3px; }
+.divbadge { flex: none; display: inline-grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--c) 16%, transparent); }
+.rail a.on .divbadge { background: transparent; }
+.rail a.on .divicon { color: var(--on-accent) !important; }
+.btn.primary .divicon { color: var(--on-accent) !important; }
+.legend .divicon { margin: 1px 6px 0 0; }
+.inline-div { display: inline-flex; align-items: center; gap: 6px; }
+.shares .code { display: inline-flex; align-items: center; gap: 6px; }

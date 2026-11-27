@@ -7,6 +7,7 @@ import ExportButton from "@/components/ExportButton.tsx";
 import Icon from "@/components/Icon.tsx";
 import PageTools from "@/components/PageTools.tsx";
 import { colorFor } from "@/lib/colors.ts";
+import DivisionIcon from "@/components/DivisionIcon.tsx";
 import { fmt, fmt1, fmtDate } from "@/lib/format.ts";
 import {
   getDepartmentTotals, getDepartmentYearly, getDivisionSummaries, getFirstPubYear, getLastSync, getLecturers,
@@ -77,7 +78,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
                 const max = Math.max(1, ...divisions.map((x) => x.by_year[last.year]?.publications ?? 0));
                 return (
                   <li key={d.code} title={d.name}>
-                    <Link className="code" href={`/divisi/${d.code}${qs}`} style={{ color: "var(--text)" }}>{d.code}</Link>
+                    <Link className="code" href={`/divisi/${d.code}${qs}`} style={{ color: "var(--text)" }}><DivisionIcon code={d.code} size={16} />{d.code}</Link>
                     <span className="track"><span className="fill" style={{ width: `${(100 * v) / max}%`, background: colorFor(d.code) }} /></span>
                     <span className="v">{fmt(v)}</span>
                   </li>

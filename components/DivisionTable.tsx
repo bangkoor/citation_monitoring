@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { DivisionSummary } from "@/lib/queries.ts";
-import { colorFor } from "@/lib/colors.ts";
+import DivisionIcon from "./DivisionIcon.tsx";
 import { fmt, fmt1 } from "@/lib/format.ts";
 
 /** Recap per division over the selected years. */
@@ -24,7 +24,7 @@ export default function DivisionTable({ rows, years, qs }: { rows: DivisionSumma
         <tbody>
           {rows.map((r) => (
             <tr key={r.code}>
-              <td className="wrap" style={{ minWidth: 200 }}><span className="swatch" style={{ background: colorFor(r.code) }} /><Link href={`/divisi/${r.code}${qs}`}>{r.name}</Link></td>
+              <td className="wrap" style={{ minWidth: 200 }}><span className="inline-div"><DivisionIcon code={r.code} badge size={16} /><Link href={`/divisi/${r.code}${qs}`}>{r.name}</Link></span></td>
               <td className="n">{r.lecturers_active}</td>
               {years.map((y) => <td key={y} className="n">{fmt(r.by_year[y]?.publications ?? 0)}</td>)}
               <td className="n">{fmt1(avg(r))}</td>
