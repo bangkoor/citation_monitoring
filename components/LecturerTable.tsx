@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { LecturerRow } from "@/lib/queries.ts";
+import Avatar from "./Avatar.tsx";
 
 const nf = new Intl.NumberFormat("id-ID");
 const f = (v: number | null | undefined) => (v === null || v === undefined ? "–" : nf.format(v));
@@ -91,7 +92,7 @@ export default function LecturerTable({
               return (
                 <tr key={r.id} className={r.active ? "" : "inactive"}>
                   <td>
-                    <Link href={`/dosen/${r.id}${qs}`}>{r.name}</Link>
+                    <Link className="name-cell" href={`/dosen/${r.id}${qs}`}><Avatar name={r.name} division={r.division_code} />{r.name}</Link>
                     {!r.active && <span className="pill" style={{ marginLeft: 6 }}>tidak aktif</span>}
                     {!r.scopus_id && <span className="pill" style={{ marginLeft: 6 }}>tanpa Scopus ID</span>}
                   </td>
