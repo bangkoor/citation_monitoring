@@ -6,20 +6,22 @@ import type { LecturerRow } from "@/lib/queries.ts";
 const nf = new Intl.NumberFormat("id-ID");
 const f = (v: number | null | undefined) => (v === null || v === undefined ? "–" : nf.format(v));
 
-type Key = "name" | "division_code" | "documents" | "citations" | "h_index" | "growth" | "q1" | `y${number}`;
+type Key = "name" | "division_code" | "pubs_range" | "cites_range" | "citations" | "h_index" | "growth" | "q1" | `y${number}`;
 
 export default function LecturerTable({
-  rows, years, divisions, showDivisionFilter = true,
+  rows, years, rangeLabel, qs, divisions, showDivisionFilter = true,
 }: {
   rows: LecturerRow[];
   years: number[];
+  rangeLabel: string;
+  qs: string;
   divisions: { code: string; name: string }[];
   showDivisionFilter?: boolean;
 }) {
   const [q, setQ] = useState("");
   const [div, setDiv] = useState("");
   const [status, setStatus] = useState("aktif");
-  const [sort, setSort] = useState<{ key: Key; dir: 1 | -1 }>({ key: "citations", dir: -1 });
+  const [sort, setSort] = useState<{ key: Key; dir: 1 | -1 }>({ key: "cites_range", dir: -1 });
 
   const growth = (r: LecturerRow) =>
     r.citations !== null && r.citations_prev !== null ? r.citations - r.citations_prev : null;
@@ -74,12 +76,13 @@ export default function LecturerTable({
             <tr>
               {th("name", "Nama", false)}
               {showDivisionFilter && th("division_code", "Divisi", false)}
-              {th("documents", "Dokumen")}
-              {th("citations", "Sitasi")}
-              {th("growth", "Δ Sitasi")}
-              {th("h_index", "h-index")}
+              {th("pubs_range", `Publikasi ${rangeLabel}`)}
+              {th("cites_range", "Sitasi publikasi tsb.")}
               {th("q1", "Q1")}
               {years.map((y) => th(`y${y}`, String(y)))}
+              {th("citations", "Total sitasi Scopus")}
+              {th("growth", "Δ Sitasi")}
+              {th("h_index", "h-index")}
             </tr>
           </thead>
           <tbody>
@@ -88,17 +91,18 @@ export default function LecturerTable({
               return (
                 <tr key={r.id} className={r.active ? "" : "inactive"}>
                   <td>
-                    <Link href={`/dosen/${r.id}`}>{r.name}</Link>
+                    <Link href={`/dosen/${r.id}${qs}`}>{r.name}</Link>
                     {!r.active && <span className="pill" style={{ marginLeft: 6 }}>tidak aktif</span>}
                     {!r.scopus_id && <span className="pill" style={{ marginLeft: 6 }}>tanpa Scopus ID</span>}
                   </td>
                   {showDivisionFilter && <td>{r.division_code ?? "–"}</td>}
-                  <td className="n">{f(r.documents)}</td>
+                  <td className="n">{f(r.pubs_range)}</td>
+                  <td className="n">{f(r.cites_range)}</td>
+                  <td className="n">{f(r.q1)}</td>
+                  {years.map((y) => <td key={y} className="n">{f(r.by_year[y] ?? 0)}</td>)}
                   <td className="n">{f(r.citations)}</td>
                   <td className="n">{g === null ? "–" : g > 0 ? <span className="up">+{nf.format(g)}</span> : nf.format(g)}</td>
                   <td className="n">{f(r.h_index)}</td>
-                  <td className="n">{f(r.q1)}</td>
-                  {years.map((y) => <td key={y} className="n">{f(r.by_year[y] ?? 0)}</td>)}
                 </tr>
               );
             })}
@@ -106,7 +110,7 @@ export default function LecturerTable({
         </table>
       </div>
       <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-        Δ Sitasi = pertambahan sitasi sejak pembaruan data sebelumnya. Kolom tahun = jumlah publikasi terindeks Scopus pada tahun tersebut.
+        Publikasi, sitasi, Q1, dan kolom tahun mengikuti filter tahun. Total sitasi Scopus, Δ Sitasi (pertambahan sejak pembaruan data sebelumnya), dan h-index mencakup seluruh karier.
       </p>
     </>
   );

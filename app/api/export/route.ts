@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
-import { CURRENT_YEAR, YEARS, getAllPublications, getDivisionSummaries, getLastSync, getLecturers } from "@/lib/queries.ts";
+import { getAllPublications, getDivisionSummaries, getLastSync, getLecturers } from "@/lib/queries.ts";
+import { parseRange, rangeLabel } from "@/lib/range.ts";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -15,9 +16,13 @@ function styleHeader(ws: ExcelJS.Worksheet) {
 }
 
 export async function GET(req: Request) {
-  const divisi = new URL(req.url).searchParams.get("divisi")?.toUpperCase() || null;
+  const params = new URL(req.url).searchParams;
+  const divisi = params.get("divisi")?.toUpperCase() || null;
+  const range = parseRange(params);
+  const YEARS = range.years;
+  const label = rangeLabel(range);
   const [summaries, lecturersAll, pubsAll, lastSync] = await Promise.all([
-    getDivisionSummaries(), getLecturers(), getAllPublications(), getLastSync(),
+    getDivisionSummaries(range), getLecturers(range), getAllPublications(range), getLastSync(),
   ]);
   const divisions = divisi ? summaries.filter((d) => d.code === divisi) : summaries;
   if (divisi && divisions.length === 0) return new Response("Divisi tidak ditemukan", { status: 404 });
@@ -28,7 +33,6 @@ export async function GET(req: Request) {
   const wb = new ExcelJS.Workbook();
   wb.creator = "Sitasi Dosen KSHE";
   wb.created = new Date();
-  const avgYears = [CURRENT_YEAR - 3, CURRENT_YEAR - 2, CURRENT_YEAR - 1];
 
   // Sheet 1: division recap
   const ws1 = wb.addWorksheet("Rekap Divisi");
@@ -37,16 +41,18 @@ export async function GET(req: Request) {
     { header: "Divisi", key: "name", width: 44 },
     { header: "Dosen aktif", key: "active", width: 11 },
     ...YEARS.map((y) => ({ header: `Publikasi ${y}`, key: `p${y}`, width: 12 })),
-    { header: `Rata-rata publikasi/dosen ${avgYears[0]}–${avgYears[2]}`, key: "avg", width: 18, style: { numFmt: "0.00" } },
+    { header: `Rata-rata publikasi per dosen per tahun ${label}`, key: "avg", width: 18, style: { numFmt: "0.00" } },
     ...YEARS.map((y) => ({ header: `Q1 ${y}`, key: `q${y}`, width: 9 })),
+    ...YEARS.map((y) => ({ header: `Sitasi ${y}`, key: `c${y}`, width: 10 })),
+    { header: `Total publikasi ${label}`, key: "pubs", width: 12 },
     { header: "Total Q1", key: "q1", width: 10 },
     { header: "Total Top Tier", key: "tt", width: 12 },
     { header: "Total sitasi", key: "cites", width: 12 },
   ];
   for (const d of divisions) {
-    const row: Record<string, unknown> = { code: d.code, name: d.name, active: d.lecturers_active, q1: d.q1, tt: d.top_tier, cites: d.citations };
-    for (const y of YEARS) { row[`p${y}`] = d.by_year[y].publications; row[`q${y}`] = d.by_year[y].q1; }
-    row.avg = d.lecturers_active ? avgYears.reduce((a, y) => a + d.by_year[y].publications, 0) / 3 / d.lecturers_active : 0;
+    const row: Record<string, unknown> = { code: d.code, name: d.name, active: d.lecturers_active, pubs: d.publications, q1: d.q1, tt: d.top_tier, cites: d.citations };
+    for (const y of YEARS) { row[`p${y}`] = d.by_year[y].publications; row[`q${y}`] = d.by_year[y].q1; row[`c${y}`] = d.by_year[y].citations; }
+    row.avg = d.lecturers_active ? d.publications / YEARS.length / d.lecturers_active : 0;
     ws1.addRow(row);
   }
   styleHeader(ws1);
@@ -60,18 +66,20 @@ export async function GET(req: Request) {
     { header: "Status", key: "status", width: 22 },
     { header: "Scopus ID", key: "scopus", width: 14 },
     { header: "SINTA ID", key: "sinta", width: 11 },
-    { header: "Dokumen Scopus", key: "docs", width: 11 },
-    { header: "Total sitasi", key: "cites", width: 11 },
+    { header: `Publikasi ${label}`, key: "pubs", width: 11 },
+    { header: `Sitasi publikasi ${label}`, key: "citesr", width: 12 },
+    { header: `Q1 ${label}`, key: "q1", width: 10 },
+    { header: "Dokumen Scopus (seluruh karier)", key: "docs", width: 13 },
+    { header: "Total sitasi Scopus (seluruh karier)", key: "cites", width: 13 },
     { header: "Δ sitasi sejak pembaruan sebelumnya", key: "growth", width: 16 },
     { header: "h-index", key: "h", width: 9 },
-    { header: "Publikasi Q1", key: "q1", width: 11 },
     ...YEARS.map((y) => ({ header: `Publikasi ${y}`, key: `p${y}`, width: 11 })),
     { header: "Tanggal data", key: "date", width: 13 },
   ];
   for (const l of lecturers) {
     const row: Record<string, unknown> = {
       name: l.name, div: l.division_code, rank: l.academic_rank, status: l.active ? "Aktif" : (l.status_note ?? "Tidak aktif"),
-      scopus: l.scopus_id, sinta: l.sinta_id, docs: l.documents, cites: l.citations,
+      scopus: l.scopus_id, sinta: l.sinta_id, pubs: l.pubs_range, citesr: l.cites_range, docs: l.documents, cites: l.citations,
       growth: l.citations !== null && l.citations_prev !== null ? l.citations - l.citations_prev : null,
       h: l.h_index, q1: l.q1, date: l.snapshot_date,
     };
@@ -106,7 +114,8 @@ export async function GET(req: Request) {
   [
     `Sumber data: Scopus (Elsevier). Pembaruan terakhir: ${lastSync ? new Date(lastSync.finishedAt).toISOString().slice(0, 10) : "-"}.`,
     "Publikasi divisi: artikel yang ditulis bersama oleh beberapa dosen dalam satu divisi dihitung satu kali.",
-    `Rata-rata publikasi/dosen: jumlah publikasi divisi ${avgYears[0]}–${avgYears[2]} dibagi 3 tahun dan jumlah dosen aktif saat ini.`,
+    `Rentang tahun publikasi: ${label}. Sitasi per tahun = sitasi yang diterima publikasi terbitan tahun tersebut.`,
+    `Rata-rata publikasi per dosen per tahun: jumlah publikasi divisi ${label} dibagi ${YEARS.length} tahun dan jumlah dosen aktif saat ini.`,
     "Kuartil: kuartil SJR (SCImago) bila tersedia; jika tidak, persentil CiteScore Scopus (≥75 = Q1).",
     "Top Tier: persentil CiteScore ≥ 90 (10% teratas).",
   ].forEach((k) => ws4.addRow({ k }));
@@ -114,7 +123,7 @@ export async function GET(req: Request) {
 
   const buf = await wb.xlsx.writeBuffer();
   const stamp = new Date().toISOString().slice(0, 10);
-  const name = `sitasi-kshe${divisi ? `-${divisi}` : ""}-${stamp}.xlsx`;
+  const name = `sitasi-kshe${divisi ? `-${divisi}` : ""}-${range.from}-${range.to}-${stamp}.xlsx`;
   return new Response(buf as ArrayBuffer, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

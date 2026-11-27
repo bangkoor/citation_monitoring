@@ -91,3 +91,46 @@ export function SnapshotLine({ data, label }: { data: { date: string; value: num
     </div>
   );
 }
+
+function PairTip({ active, payload, label, color }: any) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  return (
+    <div className="tooltip">
+      <div className="t">{label}</div>
+      <div className="r"><span><span className="swatch" style={{ background: color }} />Publikasi</span><span className="num">{nf.format(d.publikasi ?? 0)}</span></div>
+      <div className="r"><span><span className="swatch" style={{ background: "var(--cite)" }} />Sitasi</span><span className="num">{nf.format(d.sitasi ?? 0)}</span></div>
+    </div>
+  );
+}
+
+/**
+ * Publications and citations per year as two aligned charts sharing the x-axis
+ * (two scales, so two charts rather than a dual axis). Hovering one highlights the same year in both.
+ */
+export function PubCiteCharts({ data, color = "var(--series-1)", syncId }: {
+  data: { year: number | string; publikasi: number; sitasi: number }[]; color?: string; syncId: string;
+}) {
+  const panel = (key: "publikasi" | "sitasi", title: string, fill: string) => (
+    <div>
+      <h3>{title}</h3>
+      <div className="chart" role="img" aria-label={title}>
+        <ResponsiveContainer>
+          <BarChart data={data} syncId={syncId} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="30%">
+            <CartesianGrid stroke="var(--grid)" vertical={false} />
+            <XAxis dataKey="year" {...axis} />
+            <YAxis {...axis} width={48} allowDecimals={false} tickFormatter={(v) => nf.format(v)} />
+            <Tooltip content={<PairTip color={color} />} cursor={{ fill: "var(--surface-2)" }} />
+            <Bar dataKey={key} name={title} fill={fill} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+  return (
+    <div className="pair">
+      {panel("publikasi", "Publikasi per tahun", color)}
+      {panel("sitasi", "Sitasi yang diterima publikasi terbitan tahun tsb.", "var(--cite)")}
+    </div>
+  );
+}

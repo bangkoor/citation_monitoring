@@ -1,27 +1,43 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SnapshotLine, YearBars } from "@/components/Charts.tsx";
+import { PubCiteCharts, SnapshotLine } from "@/components/Charts.tsx";
+import PageTools from "@/components/PageTools.tsx";
 import { colorFor } from "@/lib/colors.ts";
 import { fmt } from "@/lib/format.ts";
-import { YEARS, getLecturer } from "@/lib/queries.ts";
+import { getFirstPubYear, getLecturer } from "@/lib/queries.ts";
+import { parseRange, rangeLabel, rangeQuery } from "@/lib/range.ts";
 
 export const dynamic = "force-dynamic";
 
-export default async function LecturerPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function LecturerPage({ params, searchParams }: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
-  const data = Number.isInteger(Number(id)) ? await getLecturer(Number(id)) : null;
+  const range = parseRange(await searchParams);
+  const qs = rangeQuery(range);
+  const label = rangeLabel(range);
+  const [data, firstYear] = await Promise.all([
+    Number.isInteger(Number(id)) ? getLecturer(Number(id)) : null,
+    getFirstPubYear(),
+  ]);
   if (!data) notFound();
-  const { lecturer: l, snapshots, publications } = data;
+  const { lecturer: l, snapshots, publications: all } = data;
   const latest = snapshots.at(-1);
-  const byYear = YEARS.map((y) => ({ year: y, value: publications.filter((p) => p.pub_year === y).length }));
+  const publications = all.filter((p) => p.pub_year !== null && p.pub_year >= range.from && p.pub_year <= range.to);
+  const byYear = range.years.map((y) => {
+    const ps = publications.filter((p) => p.pub_year === y);
+    return { year: y, publikasi: ps.length, sitasi: ps.reduce((a, p) => a + p.cited_by, 0) };
+  });
   const q1 = publications.filter((p) => p.quartile === "Q1").length;
+  const citesRange = publications.reduce((a, p) => a + p.cited_by, 0);
 
   return (
     <>
-      <p className="sub" style={{ marginBottom: 8 }}><Link href="/dosen">← Semua dosen</Link></p>
+      <p className="sub" style={{ marginBottom: 8 }}><Link href={`/dosen${qs}`}>← Semua dosen</Link></p>
       <h1>{l.name}</h1>
       <p className="sub">
-        {l.division_code && <><span className="swatch" style={{ background: colorFor(l.division_code) }} /><Link href={`/divisi/${l.division_code}`}>Divisi {l.division_name}</Link> · </>}
+        {l.division_code && <><span className="swatch" style={{ background: colorFor(l.division_code) }} /><Link href={`/divisi/${l.division_code}${qs}`}>Divisi {l.division_name}</Link> · </>}
         {l.academic_rank ?? ""}{l.status_note ? ` · ${l.status_note}` : ""}
       </p>
       <p className="links">
@@ -35,16 +51,16 @@ export default async function LecturerPage({ params }: { params: Promise<{ id: s
         <section className="card"><p>Scopus Author ID untuk dosen ini belum tercatat, sehingga datanya belum dapat ditampilkan.</p></section>
       ) : (
         <>
+          <PageTools range={range} firstYear={firstYear} />
           <section className="kpis">
-            <div className="kpi"><div className="label">Dokumen Scopus</div><div className="value">{fmt(latest?.documents)}</div></div>
-            <div className="kpi"><div className="label">Sitasi</div><div className="value">{fmt(latest?.citations)}</div></div>
-            <div className="kpi"><div className="label">h-index</div><div className="value">{fmt(latest?.h_index)}</div></div>
-            <div className="kpi"><div className="label">Publikasi Q1</div><div className="value">{fmt(q1)}</div></div>
+            <div className="kpi"><div className="label">Publikasi {label}</div><div className="value">{fmt(publications.length)}</div><div className="note">{fmt(q1)} di antaranya Q1</div></div>
+            <div className="kpi"><div className="label">Sitasi</div><div className="value">{fmt(citesRange)}</div><div className="note">yang diterima publikasi {label}</div></div>
+            <div className="kpi"><div className="label">Total sitasi Scopus</div><div className="value">{fmt(latest?.citations)}</div><div className="note">seluruh karier, {fmt(latest?.documents)} dokumen</div></div>
+            <div className="kpi"><div className="label">h-index</div><div className="value">{fmt(latest?.h_index)}</div><div className="note">seluruh karier</div></div>
           </section>
 
           <section className="card">
-            <div className="card-head"><h2>Publikasi per tahun</h2></div>
-            <YearBars data={byYear} label="Publikasi" color={colorFor(l.division_code)} />
+            <PubCiteCharts syncId={`dosen-${l.id}`} data={byYear} color={colorFor(l.division_code)} />
           </section>
 
           <section className="card">
@@ -60,7 +76,7 @@ export default async function LecturerPage({ params }: { params: Promise<{ id: s
           </section>
 
           <section className="card">
-            <div className="card-head"><h2>Daftar publikasi</h2><p>{publications.length} dokumen</p></div>
+            <div className="card-head"><h2>Daftar publikasi {label}</h2><p>{publications.length} dari {all.length} dokumen</p></div>
             <div className="table-wrap">
               <table>
                 <thead><tr><th className="n">Tahun</th><th>Judul</th><th>Sumber</th><th>Kuartil</th><th className="n">Sitasi</th></tr></thead>
