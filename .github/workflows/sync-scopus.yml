@@ -2,7 +2,7 @@ name: Sync Scopus data
 
 on:
   schedule:
-    - cron: "0 1 1 * *"   # 08:00 WIB on the 1st of every month
+    - cron: "0 20 * * 6"   # Minggu 03:00 WIB (Sabtu 20:00 UTC)
   workflow_dispatch:
     inputs:
       only:

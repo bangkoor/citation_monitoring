@@ -2,7 +2,7 @@
 
 Dashboard pemantauan publikasi dan sitasi dosen Departemen Konservasi Sumberdaya Hutan dan Ekowisata (KSHE), IPB University, per dosen dan per divisi.
 
-Data diambil dari Scopus setiap bulan, lalu disimpan sebagai *snapshot* di database Neon (PostgreSQL) sehingga tren dapat dilihat dari waktu ke waktu.
+Data diambil dari Scopus setiap minggu, lalu disimpan sebagai *snapshot* di database Neon (PostgreSQL) sehingga tren dapat dilihat dari waktu ke waktu.
 
 ## Isi repo
 
@@ -12,7 +12,7 @@ Data diambil dari Scopus setiap bulan, lalu disimpan sebagai *snapshot* di datab
 | `db/schema.sql` | Skema database dan *view* untuk dashboard. |
 | `scripts/sync-scopus.ts` | Mengambil metrik penulis (dokumen, sitasi, h-index) dan daftar publikasi dari Scopus, serta CiteScore jurnal. |
 | `scripts/import-scimago.ts` | (Opsional) Mengimpor kuartil SJR dari file ekspor SCImago. |
-| `.github/workflows/sync-scopus.yml` | Menjalankan sinkronisasi otomatis setiap tanggal 1, pukul 08.00 WIB. |
+| `.github/workflows/sync-scopus.yml` | Menjalankan sinkronisasi otomatis setiap hari Minggu pukul 03.00 WIB. |
 
 ## Penyiapan (sekali saja)
 
@@ -30,7 +30,7 @@ Halaman: **Ringkasan** (`/`), **Dosen** (`/dosen`, bisa dicari, difilter, dan di
 Deploy:
 1. Di [vercel.com](https://vercel.com) → **Add New → Project** → impor repo `citation_monitoring`. Framework terdeteksi otomatis sebagai Next.js.
 2. Di **Environment Variables**, tambahkan `DATABASE_URL` (connection string Neon yang sama). API key Scopus **tidak** perlu di Vercel.
-3. Klik **Deploy**. Data di dashboard selalu yang terbaru di database, jadi tidak perlu deploy ulang setelah sync bulanan.
+3. Klik **Deploy**. Data di dashboard selalu yang terbaru di database, jadi tidak perlu deploy ulang setelah sync mingguan.
 
 ## Menjalankan secara lokal
 
