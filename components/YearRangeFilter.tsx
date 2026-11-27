@@ -34,6 +34,7 @@ export default function YearRangeFilter({ from, to, minYear, maxYear, defaultFro
 
   return (
     <div className="range" role="group" aria-label="Filter rentang tahun">
+      <span className="cal" aria-hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4" /></svg></span>
       <label>
         <span>Dari</span>
         <select value={from} onChange={(e) => go(Number(e.target.value), to)} disabled={pending}>

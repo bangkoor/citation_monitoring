@@ -14,14 +14,16 @@ export default async function DosenPage({ searchParams }: { searchParams: Promis
   const [rows, divisions, lastSync, firstYear] = await Promise.all([getLecturers(range), getDivisions(), getLastSync(), getFirstPubYear()]);
   return (
     <>
-      <div className="row" style={{ alignItems: "flex-start" }}>
+      <div className="page-head">
         <div>
-          <h1>Sitasi per dosen</h1>
+          <h1>Sitasi <span className="soft">per dosen</span></h1>
           <p className="sub">Klik judul kolom untuk mengurutkan. {lastSync && <>Data diperbarui {fmtDate(lastSync.finishedAt)}.</>}</p>
         </div>
-        <ExportButton href={`/api/export${qs}`} />
+        <div className="row" style={{ justifyContent: "flex-end" }}>
+          <PageTools range={range} firstYear={firstYear} />
+          <ExportButton href={`/api/export${qs}`} />
+        </div>
       </div>
-      <PageTools range={range} firstYear={firstYear} />
       <section className="card">
         <LecturerTable rows={rows} years={range.years} rangeLabel={rangeLabel(range)} qs={qs} divisions={divisions} />
       </section>

@@ -92,14 +92,14 @@ export function SnapshotLine({ data, label }: { data: { date: string; value: num
   );
 }
 
-function PairTip({ active, payload, label, color }: any) {
+function PairTip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   return (
     <div className="tooltip">
       <div className="t">{label}</div>
-      <div className="r"><span><span className="swatch" style={{ background: color }} />Publikasi</span><span className="num">{nf.format(d.publikasi ?? 0)}</span></div>
-      <div className="r"><span><span className="swatch" style={{ background: "var(--cite)" }} />Sitasi</span><span className="num">{nf.format(d.sitasi ?? 0)}</span></div>
+      <div className="r"><span><span className="swatch" style={{ background: "var(--accent-bar)" }} />Publikasi</span><span className="num">{nf.format(d.publikasi ?? 0)}</span></div>
+      <div className="r"><span><span className="swatch" style={{ background: "var(--accent)" }} />Sitasi</span><span className="num">{nf.format(d.sitasi ?? 0)}</span></div>
     </div>
   );
 }
@@ -108,20 +108,26 @@ function PairTip({ active, payload, label, color }: any) {
  * Publications and citations per year as two aligned charts sharing the x-axis
  * (two scales, so two charts rather than a dual axis). Hovering one highlights the same year in both.
  */
-export function PubCiteCharts({ data, color = "var(--series-1)", syncId }: {
+export function PubCiteCharts({ data, syncId }: {
   data: { year: number | string; publikasi: number; sitasi: number }[]; color?: string; syncId: string;
 }) {
-  const panel = (key: "publikasi" | "sitasi", title: string, fill: string) => (
+  const panel = (key: "publikasi" | "sitasi", title: string, pattern: string) => (
     <div>
       <h3>{title}</h3>
       <div className="chart" role="img" aria-label={title}>
         <ResponsiveContainer>
-          <BarChart data={data} syncId={syncId} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="30%">
-            <CartesianGrid stroke="var(--grid)" vertical={false} />
+          <BarChart data={data} syncId={syncId} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="24%">
+            <defs>
+              <pattern id={`${syncId}-${key}`} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="8" height="8" style={{ fill: pattern }} />
+                {key === "publikasi" && <line x1="0" y1="0" x2="0" y2="8" style={{ stroke: "var(--surface)", strokeOpacity: 0.35 }} strokeWidth="3" />}
+              </pattern>
+            </defs>
+            <CartesianGrid stroke="var(--grid)" strokeDasharray="4 4" vertical={false} />
             <XAxis dataKey="year" {...axis} />
             <YAxis {...axis} width={48} allowDecimals={false} tickFormatter={(v) => nf.format(v)} />
-            <Tooltip content={<PairTip color={color} />} cursor={{ fill: "var(--surface-2)" }} />
-            <Bar dataKey={key} name={title} fill={fill} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false} />
+            <Tooltip content={<PairTip />} cursor={{ fill: "var(--surface-2)", radius: 12 } as any} />
+            <Bar dataKey={key} name={title} fill={`url(#${syncId}-${key})`} radius={999} maxBarSize={44} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -129,8 +135,8 @@ export function PubCiteCharts({ data, color = "var(--series-1)", syncId }: {
   );
   return (
     <div className="pair">
-      {panel("publikasi", "Publikasi per tahun", color)}
-      {panel("sitasi", "Sitasi yang diterima publikasi terbitan tahun tsb.", "var(--cite)")}
+      {panel("publikasi", "Publikasi per tahun", "var(--accent-bar)")}
+      {panel("sitasi", "Sitasi yang diterima publikasi terbitan tahun tsb.", "var(--accent)")}
     </div>
   );
 }

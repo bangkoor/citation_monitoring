@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import Icon from "@/components/Icon.tsx";
+import { PillNav, Rail } from "@/components/Nav.tsx";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,21 +13,30 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
       <body>
-        <header className="topbar">
-          <div className="topbar-inner">
+        <div className="shell">
+          <header className="topbar">
             <Link href="/" className="brand">
-              Sitasi Dosen KSHE
-              <small>Departemen Konservasi Sumberdaya Hutan dan Ekowisata · IPB University</small>
+              <span className="brand-mark"><Icon name="leaf" size={18} stroke={2.2} /></span>
+              <span>Sitasi Dosen KSHE<small>Departemen KSHE · IPB University</small></span>
             </Link>
-            <nav className="nav">
-              <Link href="/">Ringkasan</Link>
-              <Link href="/dosen">Dosen</Link>
-              <Link href="/divisi/EMHL">Divisi</Link>
-            </nav>
+            <Suspense fallback={<nav className="pillnav" />}><PillNav /></Suspense>
+            <div className="top-actions">
+              <a className="icon-btn" href="https://kshe.ipb.ac.id" target="_blank" rel="noopener" aria-label="Website Departemen KSHE" title="Website Departemen KSHE">
+                <Icon name="arrow" size={18} />
+              </a>
+            </div>
+          </header>
+          <div className="frame">
+            <Suspense fallback={<aside className="rail" />}><Rail /></Suspense>
+            <main>{children}</main>
           </div>
-        </header>
-        <main>{children}</main>
+        </div>
       </body>
     </html>
   );

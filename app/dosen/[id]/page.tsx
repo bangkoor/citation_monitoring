@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PubCiteCharts, SnapshotLine } from "@/components/Charts.tsx";
+import Avatar from "@/components/Avatar.tsx";
 import PageTools from "@/components/PageTools.tsx";
 import { colorFor } from "@/lib/colors.ts";
 import { fmt } from "@/lib/format.ts";
@@ -34,12 +35,20 @@ export default async function LecturerPage({ params, searchParams }: {
 
   return (
     <>
-      <p className="sub" style={{ marginBottom: 8 }}><Link href={`/dosen${qs}`}>← Semua dosen</Link></p>
-      <h1>{l.name}</h1>
+      <Link className="back" href={`/dosen${qs}`}>← Semua dosen</Link>
+      <div className="page-head">
+        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <span style={{ transform: "scale(1.6)", transformOrigin: "left center", marginRight: 22 }}><Avatar name={l.name} division={l.division_code} /></span>
+          <div>
+            <h1>{l.name}</h1>
       <p className="sub">
         {l.division_code && <><span className="swatch" style={{ background: colorFor(l.division_code) }} /><Link href={`/divisi/${l.division_code}${qs}`}>Divisi {l.division_name}</Link> · </>}
         {l.academic_rank ?? ""}{l.status_note ? ` · ${l.status_note}` : ""}
       </p>
+          </div>
+        </div>
+        {l.scopus_id && <PageTools range={range} firstYear={firstYear} />}
+      </div>
       <p className="links">
         {l.scopus_id && <a href={`https://www.scopus.com/authid/detail.uri?authorId=${l.scopus_id}`} target="_blank" rel="noopener">Scopus</a>}
         {l.sinta_id && <a href={`https://sinta.kemdiktisaintek.go.id/authors/profile/${l.sinta_id}`} target="_blank" rel="noopener">SINTA</a>}
@@ -51,10 +60,9 @@ export default async function LecturerPage({ params, searchParams }: {
         <section className="card"><p>Scopus Author ID untuk dosen ini belum tercatat, sehingga datanya belum dapat ditampilkan.</p></section>
       ) : (
         <>
-          <PageTools range={range} firstYear={firstYear} />
           <section className="kpis">
+            <div className="kpi hero"><div className="label">Sitasi</div><div className="value" style={{ margin: "4px 0 2px", fontSize: 34 }}>{fmt(citesRange)}</div><div className="foot">yang diterima publikasi {label}</div></div>
             <div className="kpi"><div className="label">Publikasi {label}</div><div className="value">{fmt(publications.length)}</div><div className="note">{fmt(q1)} di antaranya Q1</div></div>
-            <div className="kpi"><div className="label">Sitasi</div><div className="value">{fmt(citesRange)}</div><div className="note">yang diterima publikasi {label}</div></div>
             <div className="kpi"><div className="label">Total sitasi Scopus</div><div className="value">{fmt(latest?.citations)}</div><div className="note">seluruh karier, {fmt(latest?.documents)} dokumen</div></div>
             <div className="kpi"><div className="label">h-index</div><div className="value">{fmt(latest?.h_index)}</div><div className="note">seluruh karier</div></div>
           </section>

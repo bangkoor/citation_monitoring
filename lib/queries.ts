@@ -186,3 +186,17 @@ export async function getAllPublications(range: YearRange): Promise<PublicationR
     ORDER BY p.pub_year DESC NULLS LAST, p.cited_by DESC`;
   return rows.map((p) => ({ ...(p as any), cited_by: Number(p.cited_by), pub_year: n(p.pub_year) }));
 }
+
+/** Department-wide distinct publications and their citations per year. */
+export async function getDepartmentYearly(range: YearRange) {
+  const rows = await db()`
+    SELECT p.pub_year, COUNT(*) AS pubs, COALESCE(SUM(p.cited_by), 0) AS cites
+    FROM publications p
+    WHERE p.pub_year BETWEEN ${range.from} AND ${range.to}
+      AND EXISTS (SELECT 1 FROM publication_authors pa WHERE pa.eid = p.eid)
+    GROUP BY p.pub_year`;
+  return range.years.map((y) => {
+    const r = rows.find((x) => Number(x.pub_year) === y);
+    return { year: y, publications: Number(r?.pubs ?? 0), citations: Number(r?.cites ?? 0) };
+  });
+}
