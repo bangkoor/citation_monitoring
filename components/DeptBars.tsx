@@ -1,27 +1,29 @@
 "use client";
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, CartesianGrid, Cell, ComposedChart, LabelList, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const nf = new Intl.NumberFormat("id-ID");
 type Row = { year: number; publications: number; citations: number };
-type Metric = "publications" | "citations";
 
-function Tip({ active, payload, label, metric }: any) {
+function Tip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload as Row;
   return (
     <div className="tooltip">
       <div className="t">{label}</div>
-      <div className="r"><span>Publikasi</span><span className="num">{nf.format(d.publications)}</span></div>
-      <div className="r"><span>Sitasi</span><span className="num">{nf.format(d.citations)}</span></div>
-      {metric === "citations" && <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>sitasi yang diterima publikasi terbitan {label}</div>}
+      <div className="r"><span><span className="swatch" style={{ background: "var(--accent-bar)" }} />Publikasi</span><span className="num">{nf.format(d.publications)}</span></div>
+      <div className="r"><span><span className="swatch" style={{ background: "var(--accent)" }} />Sitasi</span><span className="num">{nf.format(d.citations)}</span></div>
+      <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>sitasi yang diterima publikasi terbitan {label}</div>
     </div>
   );
 }
 
-/** Department totals per year as rounded bars; the hovered (or latest) year is solid with a change bubble. */
+/**
+ * Department publications per year (bars, left axis) with the citations those papers received (line, right axis).
+ * The hovered (or latest) year is solid, with a bubble showing the change in publications.
+ */
 export default function DeptBars({ data }: { data: Row[] }) {
-  const [metric, setMetric] = useState<Metric>("publications");
+  const metric = "publications" as const;
   const [hover, setHover] = useState<number | null>(null);
   const active = hover ?? data.length - 1;
 
@@ -44,7 +46,6 @@ export default function DeptBars({ data }: { data: Row[] }) {
         <rect x={cx - w / 2} y={y - 34} width={w} height={22} rx={11} fill="var(--accent)" />
         <path d={`M${cx - 5} ${y - 12.5} L${cx} ${y - 7} L${cx + 5} ${y - 12.5} Z`} fill="var(--accent)" />
         <text x={cx} y={y - 19} textAnchor="middle" fill="var(--on-accent)" fontSize={12} fontWeight={650}>{text}</text>
-        <circle cx={cx} cy={y + Math.min(10, width / 2)} r={6} fill="var(--accent-strong)" stroke="var(--surface)" strokeWidth={2.5} />
       </g>
     );
   };
@@ -54,17 +55,17 @@ export default function DeptBars({ data }: { data: Row[] }) {
       <div className="card-head">
         <div className="card-title">
           <span className="card-icon" aria-hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg></span>
-          <div><h2>{metric === "publications" ? "Publikasi per tahun" : "Sitasi per tahun"}</h2>
-            <p>{metric === "publications" ? "Dokumen unik, seluruh departemen" : "Sitasi yang diterima publikasi terbitan tiap tahun"}</p></div>
+          <div><h2>Publikasi dan sitasi per tahun</h2>
+            <p>Dokumen unik seluruh departemen, dan sitasi yang diterimanya</p></div>
         </div>
-        <div className="seg" role="tablist" aria-label="Pilih metrik">
-          <button role="tab" aria-selected={metric === "publications"} className={metric === "publications" ? "on" : ""} onClick={() => setMetric("publications")}>Publikasi</button>
-          <button role="tab" aria-selected={metric === "citations"} className={metric === "citations" ? "on" : ""} onClick={() => setMetric("citations")}>Sitasi</button>
         </div>
+      <div className="combo-legend" style={{ marginBottom: 4 }}>
+        <span><span className="key bar" /><span>Publikasi <em>(sumbu kiri)</em></span></span>
+        <span><span className="key line" /><span>Sitasi yang diterima <em>(sumbu kanan)</em></span></span>
       </div>
-      <div className="chart" style={{ height: 320 }} role="img" aria-label={`Grafik ${metric === "publications" ? "publikasi" : "sitasi"} per tahun`}>
+      <div className="chart" style={{ height: 320 }} role="img" aria-label="Grafik publikasi dan sitasi per tahun">
         <ResponsiveContainer>
-          <BarChart data={data} margin={{ top: 40, right: 8, bottom: 0, left: 0 }} barCategoryGap="22%"
+          <ComposedChart data={data} margin={{ top: 40, right: 4, bottom: 0, left: 0 }} barCategoryGap="22%"
             onMouseMove={(s: any) => setHover(typeof s?.activeTooltipIndex === "number" ? s.activeTooltipIndex : null)}
             onMouseLeave={() => setHover(null)}>
             <defs>
@@ -79,14 +80,19 @@ export default function DeptBars({ data }: { data: Row[] }) {
             </defs>
             <CartesianGrid stroke="var(--grid)" strokeDasharray="4 4" vertical={false} />
             <XAxis dataKey="year" stroke="var(--text-2)" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="var(--text-2)" fontSize={12} tickLine={false} axisLine={false} width={44} allowDecimals={false}
+            <YAxis yAxisId="pub" stroke="var(--text-2)" fontSize={12} tickLine={false} axisLine={false} width={40} allowDecimals={false}
+              tickFormatter={(v) => nf.format(v)} />
+            <YAxis yAxisId="cit" orientation="right" stroke="var(--text-2)" fontSize={12} tickLine={false} axisLine={false} width={48} allowDecimals={false}
               tickFormatter={(v) => (v >= 1000 ? `${nf.format(v / 1000)}rb` : nf.format(v))} />
-            <Tooltip content={<Tip metric={metric} />} cursor={false} />
-            <Bar dataKey={metric} radius={999} maxBarSize={64} isAnimationActive={false}>
+            <Tooltip content={<Tip />} cursor={false} />
+            <Bar yAxisId="pub" dataKey={metric} radius={999} maxBarSize={64} isAnimationActive={false}>
               {data.map((_, i) => <Cell key={i} fill={i === active ? "url(#hatch-on)" : "url(#hatch)"} />)}
               <LabelList dataKey={metric} content={<Bubble />} />
             </Bar>
-          </BarChart>
+            <Line yAxisId="cit" type="monotone" dataKey="citations" stroke="var(--accent)" strokeWidth={2.5}
+              dot={{ r: 4.5, strokeWidth: 2, stroke: "var(--surface)", fill: "var(--accent)" }}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }} isAnimationActive={false} />
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </>

@@ -106,43 +106,6 @@ function PairTip({ active, payload, label }: any) {
 }
 
 /**
- * Publications and citations per year as two aligned charts sharing the x-axis
- * (two scales, so two charts rather than a dual axis). Hovering one highlights the same year in both.
- */
-export function PubCiteCharts({ data, syncId }: {
-  data: { year: number | string; publikasi: number; sitasi: number }[]; color?: string; syncId: string;
-}) {
-  const panel = (key: "publikasi" | "sitasi", title: string, pattern: string) => (
-    <div>
-      <h3>{title}</h3>
-      <div className="chart" role="img" aria-label={title}>
-        <ResponsiveContainer>
-          <BarChart data={data} syncId={syncId} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="24%">
-            <defs>
-              <pattern id={`${syncId}-${key}`} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="8" height="8" style={{ fill: pattern }} />
-                {key === "publikasi" && <line x1="0" y1="0" x2="0" y2="8" style={{ stroke: "var(--surface)", strokeOpacity: 0.35 }} strokeWidth="3" />}
-              </pattern>
-            </defs>
-            <CartesianGrid stroke="var(--grid)" strokeDasharray="4 4" vertical={false} />
-            <XAxis dataKey="year" {...axis} />
-            <YAxis {...axis} width={48} allowDecimals={false} tickFormatter={(v) => nf.format(v)} />
-            <Tooltip content={<PairTip />} cursor={{ fill: "var(--surface-2)", radius: 12 } as any} />
-            <Bar dataKey={key} name={title} fill={`url(#${syncId}-${key})`} radius={999} maxBarSize={44} isAnimationActive={false} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-  return (
-    <div className="pair">
-      {panel("publikasi", "Publikasi per tahun", "var(--accent-bar)")}
-      {panel("sitasi", "Sitasi yang diterima publikasi terbitan tahun tsb.", "var(--accent)")}
-    </div>
-  );
-}
-
-/**
  * Publications (bars, left axis) and citations received (line, right axis) per year in one chart.
  */
 export function PubCiteCombo({ data, id }: {

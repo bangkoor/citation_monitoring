@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PubCiteCharts, SnapshotLine } from "@/components/Charts.tsx";
+import { PubCiteCombo, SnapshotLine } from "@/components/Charts.tsx";
 import Avatar from "@/components/Avatar.tsx";
 import PageTools from "@/components/PageTools.tsx";
-import { colorFor } from "@/lib/colors.ts";
 import DivisionIcon from "@/components/DivisionIcon.tsx";
 import { fmt } from "@/lib/format.ts";
 import { getFirstPubYear, getLecturer } from "@/lib/queries.ts";
@@ -39,7 +38,7 @@ export default async function LecturerPage({ params, searchParams }: {
       <Link className="back" href={`/dosen${qs}`}>← Semua dosen</Link>
       <div className="page-head">
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <span style={{ transform: "scale(1.6)", transformOrigin: "left center", marginRight: 22 }}><Avatar name={l.name} division={l.division_code} /></span>
+          <Avatar name={l.name} division={l.division_code} size={64} />
           <div>
             <h1>{l.name}</h1>
       <p className="sub">
@@ -69,7 +68,7 @@ export default async function LecturerPage({ params, searchParams }: {
           </section>
 
           <section className="card">
-            <PubCiteCharts syncId={`dosen-${l.id}`} data={byYear} color={colorFor(l.division_code)} />
+            <PubCiteCombo id={`dosen-${l.id}`} data={byYear} />
           </section>
 
           <section className="card">
