@@ -1,6 +1,6 @@
 "use client";
 import {
-  ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, LineChart, Line, BarChart, Bar, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip,
 } from "recharts";
 import DivisionIcon from "./DivisionIcon.tsx";
 
@@ -139,5 +139,48 @@ export function PubCiteCharts({ data, syncId }: {
       {panel("publikasi", "Publikasi per tahun", "var(--accent-bar)")}
       {panel("sitasi", "Sitasi yang diterima publikasi terbitan tahun tsb.", "var(--accent)")}
     </div>
+  );
+}
+
+/**
+ * Publications (bars, left axis) and citations received (line, right axis) per year in one chart.
+ */
+export function PubCiteCombo({ data, id }: {
+  data: { year: number | string; publikasi: number; sitasi: number }[]; id: string;
+}) {
+  const pid = `${id}-pub`;
+  return (
+    <>
+      <div className="combo-head">
+        <h3>Publikasi dan sitasi per tahun</h3>
+        <div className="combo-legend">
+          <span><span className="key bar" /><span>Publikasi <em>(sumbu kiri)</em></span></span>
+          <span><span className="key line" /><span>Sitasi yang diterima publikasi terbitan tahun tsb. <em>(sumbu kanan)</em></span></span>
+        </div>
+      </div>
+      <div className="chart combo" role="img" aria-label="Publikasi dan sitasi per tahun">
+        <ResponsiveContainer>
+          <ComposedChart data={data} margin={{ top: 12, right: 4, bottom: 0, left: 0 }} barCategoryGap="28%">
+            <defs>
+              <pattern id={pid} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="8" height="8" style={{ fill: "var(--accent-bar)" }} />
+                <line x1="0" y1="0" x2="0" y2="8" style={{ stroke: "var(--surface)", strokeOpacity: 0.35 }} strokeWidth="3" />
+              </pattern>
+            </defs>
+            <CartesianGrid stroke="var(--grid)" strokeDasharray="4 4" vertical={false} />
+            <XAxis dataKey="year" {...axis} />
+            <YAxis yAxisId="pub" {...axis} width={44} allowDecimals={false} tickFormatter={(v) => nf.format(v)}
+              label={{ value: "Publikasi", angle: -90, position: "insideLeft", offset: 10, style: { fill: "var(--text-2)", fontSize: 12 } }} />
+            <YAxis yAxisId="cit" orientation="right" {...axis} width={52} allowDecimals={false} tickFormatter={(v) => nf.format(v)}
+              label={{ value: "Sitasi", angle: 90, position: "insideRight", offset: 10, style: { fill: "var(--text-2)", fontSize: 12 } }} />
+            <Tooltip content={<PairTip />} cursor={{ fill: "var(--surface-2)", radius: 12 } as any} />
+            <Bar yAxisId="pub" dataKey="publikasi" name="Publikasi" fill={`url(#${pid})`} radius={999} maxBarSize={48} isAnimationActive={false} />
+            <Line yAxisId="cit" type="monotone" dataKey="sitasi" name="Sitasi" stroke="var(--accent)" strokeWidth={2.5}
+              dot={{ r: 5, strokeWidth: 2, stroke: "var(--surface)", fill: "var(--accent)" }}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }} isAnimationActive={false} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </>
   );
 }

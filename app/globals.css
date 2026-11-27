@@ -293,3 +293,15 @@ body[data-loading] main > *:not(.page-head) { opacity: .45; transition: opacity 
 .name-cell { display: inline-flex; align-items: center; gap: 10px; }
 .name-cell .avatar { width: 34px; height: 34px; font-size: 12px; border-width: 0; }
 .avatar.photo { box-shadow: 0 0 0 1px var(--border); }
+
+/* Combined publications + citations chart (division page) */
+.combo-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 24px; margin-bottom: 8px; }
+.combo-head h3 { font-size: 14px; margin: 0; font-weight: 650; }
+.combo-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--text-2); }
+.combo-legend > span { display: inline-flex; align-items: baseline; gap: 6px; }
+.combo-legend .key { flex: none; align-self: center; }
+.combo-legend em { font-style: normal; opacity: .75; }
+.combo-legend .key.bar { width: 12px; height: 12px; border-radius: 4px; background: var(--accent-bar); }
+.combo-legend .key.line { width: 18px; height: 3px; border-radius: 2px; background: var(--accent); position: relative; }
+.combo-legend .key.line::after { content: ""; position: absolute; left: 5px; top: -3.5px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.chart.combo { height: 320px; }

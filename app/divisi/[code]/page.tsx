@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PubCiteCharts } from "@/components/Charts.tsx";
+import { PubCiteCombo } from "@/components/Charts.tsx";
 import Icon from "@/components/Icon.tsx";
 import ExportButton from "@/components/ExportButton.tsx";
 import LecturerTable from "@/components/LecturerTable.tsx";
 import PageTools from "@/components/PageTools.tsx";
-import { colorFor } from "@/lib/colors.ts";
 import DivisionIcon from "@/components/DivisionIcon.tsx";
 import { fmt } from "@/lib/format.ts";
 import { getDivisionSummaries, getFirstPubYear, getLecturers } from "@/lib/queries.ts";
@@ -54,7 +53,7 @@ export default async function DivisiPage({ params, searchParams }: {
       </section>
 
       <section className="card">
-        <PubCiteCharts syncId={`div-${d.code}`} color={colorFor(d.code)}
+        <PubCiteCombo id={`div-${d.code}`}
           data={range.years.map((y) => ({ year: y, publikasi: d.by_year[y].publications, sitasi: d.by_year[y].citations }))} />
       </section>
 
