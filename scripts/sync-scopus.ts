@@ -3,7 +3,8 @@
 // Usage: npm run sync            (all lecturers)
 //        npm run sync -- --only 6506961084   (one Scopus author id, for testing)
 import { getSql } from "../lib/db.ts";
-import { getAuthorDocuments, getAuthorMetrics, getSourceCiteScores, ScopusError } from "../lib/scopus.ts";
+import { getAuthorDocuments, getAuthorMetrics, getSourceCiteScores, metricsFromDocuments, ScopusError } from "../lib/scopus.ts";
+import type { AuthorMetrics } from "../lib/scopus.ts";
 
 const sql = getSql();
 const today = new Date().toISOString().slice(0, 10);
@@ -12,6 +13,7 @@ const only = onlyIdx > 0 ? process.argv[onlyIdx + 1] : null;
 
 const [run] = await sql`INSERT INTO sync_runs DEFAULT VALUES RETURNING id`;
 let ok = 0, failed = 0, pubCount = 0;
+let metricsDenied = false;
 const errors: string[] = [];
 
 const lecturers = await sql`
@@ -21,8 +23,21 @@ const lecturers = await sql`
 
 for (const l of lecturers) {
   try {
-    const m = await getAuthorMetrics(l.scopus_id);
+    // Author Retrieval needs an institutional entitlement (IPB network or insttoken).
+    // Without it, fall back to metrics computed from the author's document list.
+    let m: AuthorMetrics | null = null;
+    if (!metricsDenied) {
+      try {
+        m = await getAuthorMetrics(l.scopus_id);
+      } catch (e) {
+        if (e instanceof ScopusError && (e.status === 401 || e.status === 403)) {
+          metricsDenied = true;
+          console.warn("! Author Retrieval API not authorized; computing metrics from documents instead.");
+        } else throw e;
+      }
+    }
     const docs = await getAuthorDocuments(l.scopus_id);
+    if (!m) m = metricsFromDocuments(docs);
     await sql.begin(async (tx) => {
       await tx`
         INSERT INTO author_snapshots (lecturer_id, snapshot_date, document_count, citation_count, cited_by_count, h_index)

@@ -149,3 +149,16 @@ export async function getSourceCiteScores(sourceId: string): Promise<SourceCiteS
   }
   return out;
 }
+
+/** Document count, total citations and h-index computed from a document list. */
+export function metricsFromDocuments(docs: ScopusDocument[]): AuthorMetrics {
+  const cites = docs.map((d) => d.citedBy).sort((a, b) => b - a);
+  let h = 0;
+  while (h < cites.length && cites[h] >= h + 1) h++;
+  return {
+    documentCount: docs.length,
+    citationCount: cites.reduce((a, b) => a + b, 0),
+    citedByCount: null,
+    hIndex: h,
+  };
+}
