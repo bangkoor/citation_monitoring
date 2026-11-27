@@ -23,6 +23,15 @@ Data diambil dari Scopus setiap bulan, lalu disimpan sebagai *snapshot* di datab
    - `SCOPUS_INSTTOKEN` (opsional): *institutional token* dari Elsevier. Diperlukan bila API Scopus menolak permintaan dari luar jaringan IPB (GitHub Actions berjalan di luar jaringan IPB).
 3. Jalankan workflow pertama kali: tab **Actions** → *Sync Scopus data* → **Run workflow**. Untuk uji coba, isi satu Scopus Author ID di kolom *only*.
 
+## Dashboard (Vercel)
+
+Halaman: **Ringkasan** (`/`), **Dosen** (`/dosen`, bisa dicari, difilter, dan diurutkan), **Divisi** (`/divisi/EMHL`, dst.), dan profil tiap dosen (`/dosen/<id>`). Tombol **Unduh xlsx** (`/api/export`, atau `/api/export?divisi=RAE`) menghasilkan file Excel berisi sheet Rekap Divisi, Dosen, Publikasi, dan Keterangan.
+
+Deploy:
+1. Di [vercel.com](https://vercel.com) → **Add New → Project** → impor repo `citation_monitoring`. Framework terdeteksi otomatis sebagai Next.js.
+2. Di **Environment Variables**, tambahkan `DATABASE_URL` (connection string Neon yang sama). API key Scopus **tidak** perlu di Vercel.
+3. Klik **Deploy**. Data di dashboard selalu yang terbaru di database, jadi tidak perlu deploy ulang setelah sync bulanan.
+
 ## Menjalankan secara lokal
 
 ```bash
@@ -31,6 +40,7 @@ npm install
 npx tsx --env-file=.env scripts/migrate.ts
 npx tsx --env-file=.env scripts/seed-lecturers.ts
 npx tsx --env-file=.env scripts/sync-scopus.ts --only 6506961084
+npm run build && npx next start   # dashboard di http://localhost:3000 (perlu DATABASE_URL di .env)
 ```
 
 ## Cara penghitungan
