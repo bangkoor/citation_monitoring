@@ -70,6 +70,20 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               {lastChange !== null && <span className={`badge ${lastChange < 0 ? "down" : ""}`}>{lastChange > 0 ? "+" : ""}{lastChange}%</span>}
             </div>
             <p className="sub" style={{ fontSize: 12 }}>{prev ? <>dibanding {fmt(prev.publications)} pada {prev.year}</> : "tahun terakhir dalam rentang"}</p>
+            <p className="shares-title">Per divisi, {last.year}</p>
+            <ul className="shares">
+              {divisions.map((d) => {
+                const v = d.by_year[last.year]?.publications ?? 0;
+                const max = Math.max(1, ...divisions.map((x) => x.by_year[last.year]?.publications ?? 0));
+                return (
+                  <li key={d.code} title={d.name}>
+                    <Link className="code" href={`/divisi/${d.code}${qs}`} style={{ color: "var(--text)" }}>{d.code}</Link>
+                    <span className="track"><span className="fill" style={{ width: `${(100 * v) / max}%`, background: colorFor(d.code) }} /></span>
+                    <span className="v">{fmt(v)}</span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
 
