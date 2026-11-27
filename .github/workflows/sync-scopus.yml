@@ -1,0 +1,41 @@
+name: Sync Scopus data
+
+on:
+  schedule:
+    - cron: "0 1 1 * *"   # 08:00 WIB on the 1st of every month
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Optional: sync a single Scopus author ID (for testing)"
+        required: false
+
+concurrency:
+  group: scopus-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SCOPUS_API_KEY: ${{ secrets.SCOPUS_API_KEY }}
+      SCOPUS_INSTTOKEN: ${{ secrets.SCOPUS_INSTTOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Apply schema
+        run: npm run db:migrate
+      - name: Load lecturer list from data/dosen_kshe.csv
+        run: npm run db:seed
+      - name: Pull data from Scopus
+        run: |
+          if [ -n "${{ github.event.inputs.only }}" ]; then
+            npm run sync -- --only "${{ github.event.inputs.only }}"
+          else
+            npm run sync
+          fi

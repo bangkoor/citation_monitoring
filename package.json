@@ -1,0 +1,21 @@
+{
+  "name": "citation-monitoring",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed-lecturers.ts",
+    "sync": "tsx scripts/sync-scopus.ts",
+    "import:scimago": "tsx scripts/import-scimago.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.6",
+    "postgres": "^3.4.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
