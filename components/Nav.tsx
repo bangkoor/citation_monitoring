@@ -4,7 +4,10 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Icon from "./Icon.tsx";
 import { DIVISION_COLOR } from "@/lib/colors.ts";
 
-const DIVS = ["EMHL", "BPHL", "MKK", "RAE", "ALGM"];
+import { DIVISIONS } from "@/lib/divisions.ts";
+
+const DIVS = DIVISIONS.map((d) => d.code as string);
+const NAME = Object.fromEntries(DIVISIONS.map((d) => [d.code as string, d.name]));
 
 /** Keeps the selected year range when moving between pages. */
 function useRangeQs() {
@@ -44,7 +47,7 @@ export function Rail() {
       <div className="rail-group">
         {DIVS.map((d) => (
           <Link key={d} href={`/divisi/${d}${qs}`} className={path.toUpperCase().startsWith(`/DIVISI/${d}`) ? "on" : ""} aria-label={`Divisi ${d}`}>
-            <span className="dot" style={{ background: DIVISION_COLOR[d] }} /><span className="tag">Divisi {d}</span>
+            <span className="dot" style={{ background: DIVISION_COLOR[d] }} /><span className="tag"><b>{d}</b> · {NAME[d]}</span>
           </Link>
         ))}
       </div>
